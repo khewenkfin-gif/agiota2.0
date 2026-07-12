@@ -23,7 +23,8 @@ import {
   UserCheck,
   UserPlus,
   PiggyBank,
-  Info
+  Info,
+  LogOut
 } from 'lucide-react';
 
 function App() {
@@ -33,6 +34,7 @@ function App() {
   const [cashFlow, setCashFlow] = useState([]);
   const [paymentLogs, setPaymentLogs] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [session, setSession] = useState(null);
 
   // Active Tab: 'operacao' | 'contratos' | 'contribuintes' | 'dashboard'
   const [activeTab, setActiveTab] = useState('operacao');
@@ -190,7 +192,32 @@ function App() {
   };
 
   useEffect(() => {
-    carregarDados();
+    // Obter sessão inicial
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      if (session) {
+        carregarDados();
+      } else {
+        setLoading(false);
+      }
+    });
+
+    // Ouvir mudanças no estado de autenticação
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+      if (session) {
+        carregarDados(false);
+      } else {
+        // Limpar dados ao deslogar
+        setLoans([]);
+        setInvestors([]);
+        setCashFlow([]);
+        setPaymentLogs([]);
+        setLoading(false);
+      }
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   // --- CALCULATION HELPER FUNCTIONS ---
@@ -608,6 +635,10 @@ function App() {
     );
   }
 
+  if (!session) {
+    return <AuthScreen showToast={showToast} />;
+  }
+
   return (
     <div className="min-h-screen bg-dark-bg text-gray-100 flex flex-col md:flex-row">
       
@@ -683,13 +714,20 @@ function App() {
           </button>
         </nav>
 
-        <div className="pt-6 border-t border-dark-border mt-auto">
+        <div className="pt-6 border-t border-dark-border mt-auto flex flex-col gap-3">
           <div className="bg-dark-card rounded-xl p-4 border border-dark-border text-center">
             <span className="text-xs text-gray-400 block mb-1">Moeda Padrão</span>
             <span className="text-sm font-bold text-white font-mono flex items-center justify-center gap-1">
               Japão (JPY - ¥)
             </span>
           </div>
+          <button
+            onClick={() => supabase.auth.signOut()}
+            className="w-full flex items-center justify-center gap-2.5 px-4 py-3 bg-red-950/20 hover:bg-red-950/40 border border-red-500/20 hover:border-red-500/40 text-red-400 hover:text-red-300 rounded-xl text-sm font-semibold transition-all duration-300 cursor-pointer"
+          >
+            <LogOut className="h-4 w-4" />
+            <span>Sair do Sistema</span>
+          </button>
         </div>
       </aside>
 
@@ -746,6 +784,15 @@ function App() {
             <History className="h-4 w-4" />
             <span>Dashboard & Histórico</span>
           </button>
+          <div className="border-t border-dark-border my-2 pt-2">
+            <button
+              onClick={() => { supabase.auth.signOut(); setIsMobileMenuOpen(false); }}
+              className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-all w-full text-left cursor-pointer"
+            >
+              <LogOut className="h-4 w-4" />
+              <span>Sair do Sistema</span>
+            </button>
+          </div>
         </div>
       )}
 
@@ -1669,6 +1716,145 @@ function App() {
         </div>
       )}
 
+    </div>
+  );
+}
+
+function AuthScreen({ showToast }) {
+  const [isLogin, setIsLogin] = useState(true);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loadingAuth, setLoadingAuth] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
+  const [successMsg, setSuccessMsg] = useState('');
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setErrorMsg('');
+    setSuccessMsg('');
+    setLoadingAuth(true);
+
+    try {
+      if (isLogin) {
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.auth.signUp({ email, password });
+        if (error) throw error;
+        
+        setSuccessMsg('Conta criada com sucesso! Por favor, verifique seu e-mail para confirmar o cadastro.');
+        setEmail('');
+        setPassword('');
+      }
+    } catch (err) {
+      console.error('Erro na autenticação:', err);
+      let friendlyMessage = err.message;
+      if (err.message === 'Invalid login credentials') {
+        friendlyMessage = 'E-mail ou senha incorretos. Verifique suas credenciais.';
+      } else if (err.message === 'User already registered') {
+        friendlyMessage = 'Este e-mail já está cadastrado no sistema.';
+      } else if (err.message === 'Signup requires a valid email') {
+        friendlyMessage = 'Por favor, insira um endereço de e-mail válido.';
+      } else if (err.message === 'Password should be at least 6 characters') {
+        friendlyMessage = 'A senha deve conter pelo menos 6 caracteres.';
+      }
+      setErrorMsg(friendlyMessage);
+      showToast(friendlyMessage, 'error');
+    } finally {
+      setLoadingAuth(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-[#0B0F19] flex items-center justify-center p-4">
+      <div className="w-full max-w-md bg-[#151D30] rounded-2xl border border-gray-800 p-8 shadow-2xl transition-all duration-300">
+        <div className="flex flex-col items-center gap-3 mb-8">
+          <div className="p-3 bg-accent-blue/10 rounded-2xl border border-accent-blue/20">
+            <TrendingUp className="h-8 w-8 text-accent-blue" />
+          </div>
+          <h2 className="text-2xl font-bold text-white tracking-tight text-center">
+            {isLogin ? 'Bem-vindo ao CrediDash' : 'Criar Nova Conta'}
+          </h2>
+          <p className="text-xs text-gray-400 text-center">
+            {isLogin 
+              ? 'Insira suas credenciais para gerenciar seus empréstimos' 
+              : 'Registre-se para começar a gerenciar suas finanças de forma isolada'}
+          </p>
+        </div>
+
+        {errorMsg && (
+          <div className="mb-6 p-4 rounded-xl bg-red-950/40 border border-red-500/30 text-red-200 text-sm flex items-start gap-2.5">
+            <AlertTriangle className="h-5 w-5 text-red-400 flex-shrink-0 mt-0.5" />
+            <span>{errorMsg}</span>
+          </div>
+        )}
+
+        {successMsg && (
+          <div className="mb-6 p-4 rounded-xl bg-emerald-950/40 border border-emerald-500/30 text-emerald-200 text-sm flex items-start gap-2.5">
+            <CheckCircle className="h-5 w-5 text-emerald-400 flex-shrink-0 mt-0.5" />
+            <span>{successMsg}</span>
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <div>
+            <label className="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2">
+              Endereço de E-mail
+            </label>
+            <input
+              type="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="seuemail@exemplo.com"
+              className="w-full bg-[#0B0F19] border border-gray-800 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-accent-blue focus:ring-1 focus:ring-accent-blue transition-all font-sans"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2">
+              Senha
+            </label>
+            <input
+              type="password"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="••••••••"
+              className="w-full bg-[#0B0F19] border border-gray-800 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-accent-blue focus:ring-1 focus:ring-accent-blue transition-all font-sans"
+            />
+          </div>
+
+          <button
+            type="submit"
+            disabled={loadingAuth}
+            className="w-full flex items-center justify-center gap-2 bg-accent-blue hover:bg-accent-blue/90 text-white rounded-xl py-3 text-sm font-semibold transition-all shadow-lg shadow-accent-blue/10 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer mt-2"
+          >
+            {loadingAuth ? (
+              <div className="h-5 w-5 rounded-full border-2 border-white/20 border-t-white animate-spin" />
+            ) : isLogin ? (
+              'Entrar no Sistema'
+            ) : (
+              'Criar Minha Conta'
+            )}
+          </button>
+        </form>
+
+        <div className="mt-8 pt-6 border-t border-gray-800 text-center">
+          <button
+            onClick={() => {
+              setIsLogin(!isLogin);
+              setErrorMsg('');
+              setSuccessMsg('');
+            }}
+            className="text-xs text-accent-blue hover:underline font-medium cursor-pointer bg-transparent border-none"
+          >
+            {isLogin 
+              ? 'Não tem uma conta? Cadastre-se' 
+              : 'Já tem uma conta? Faça Login'}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
