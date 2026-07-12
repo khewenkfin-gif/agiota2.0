@@ -134,7 +134,7 @@ function App() {
       // Map Empréstimos
       const mappedLoans = dbEmprestimos.map(l => ({
         id: l.id,
-        client: l.cliente,
+        client: l.cliente || 'Sem Nome',
         valueOriginal: Number(l.valor_inicial),
         interest: Number(l.juros),
         dueDate: l.vencimento,
@@ -1003,7 +1003,7 @@ function App() {
                 <tbody className="divide-y divide-dark-border/40 text-sm">
                   {loans
                     .filter(loan => {
-                      const matchesSearch = loan.client.toLowerCase().includes(searchContractQuery.toLowerCase());
+                      const matchesSearch = (loan.client || '').toLowerCase().includes((searchContractQuery || '').toLowerCase());
                       return loan.isActive && matchesSearch;
                     })
                     .map(loan => {
@@ -1056,7 +1056,7 @@ function App() {
             <div className="block md:hidden space-y-4">
               {loans
                 .filter(loan => {
-                  const matchesSearch = loan.client.toLowerCase().includes(searchContractQuery.toLowerCase());
+                  const matchesSearch = (loan.client || '').toLowerCase().includes((searchContractQuery || '').toLowerCase());
                   return loan.isActive && matchesSearch;
                 })
                 .map(loan => {
