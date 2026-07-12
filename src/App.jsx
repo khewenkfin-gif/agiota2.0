@@ -38,6 +38,7 @@ function App() {
 
   // Active Tab: 'operacao' | 'contratos' | 'contribuintes' | 'dashboard'
   const [activeTab, setActiveTab] = useState('operacao');
+  const [activeActionModal, setActiveActionModal] = useState(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // --- NOTIFICATION BANNER STATE ---
@@ -640,7 +641,7 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen bg-dark-bg text-gray-100 flex flex-col md:flex-row">
+    <div className="min-h-screen bg-dark-bg text-gray-100 flex flex-col md:flex-row pb-20 md:pb-0">
       
       {/* --- NOTIFICATION TOAST --- */}
       {notification && (
@@ -654,8 +655,7 @@ function App() {
         </div>
       )}
 
-      {/* --- SIDEBAR DE NAVEGAÇÃO --- */}
-      {/* Desktop Sidebar */}
+      {/* --- SIDEBAR DE NAVEGAÇÃO (DESKTOP) --- */}
       <aside className="hidden md:flex flex-col w-64 bg-dark-sidebar border-r border-dark-border p-6 flex-shrink-0">
         <div className="flex items-center gap-3 mb-8">
           <div className="p-2.5 bg-accent-blue/10 rounded-xl border border-accent-blue/20">
@@ -670,7 +670,7 @@ function App() {
         <nav className="flex-1 space-y-1.5">
           <button
             onClick={() => setActiveTab('operacao')}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all cursor-pointer ${
               activeTab === 'operacao'
                 ? 'bg-accent-blue/10 text-accent-blue border border-accent-blue/20'
                 : 'text-gray-400 hover:bg-gray-800/40 hover:text-gray-200 border border-transparent'
@@ -681,7 +681,7 @@ function App() {
           </button>
           <button
             onClick={() => setActiveTab('contratos')}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all cursor-pointer ${
               activeTab === 'contratos'
                 ? 'bg-accent-green/10 text-accent-green border border-accent-green/20'
                 : 'text-gray-400 hover:bg-gray-800/40 hover:text-gray-200 border border-transparent'
@@ -692,7 +692,7 @@ function App() {
           </button>
           <button
             onClick={() => setActiveTab('contribuintes')}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all cursor-pointer ${
               activeTab === 'contribuintes'
                 ? 'bg-accent-purple/10 text-accent-purple border border-accent-purple/20'
                 : 'text-gray-400 hover:bg-gray-800/40 hover:text-gray-200 border border-transparent'
@@ -703,7 +703,7 @@ function App() {
           </button>
           <button
             onClick={() => setActiveTab('dashboard')}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all cursor-pointer ${
               activeTab === 'dashboard'
                 ? 'bg-gray-800 text-white border border-gray-700'
                 : 'text-gray-400 hover:bg-gray-800/40 hover:text-gray-200 border border-transparent'
@@ -731,70 +731,61 @@ function App() {
         </div>
       </aside>
 
-      {/* Mobile Top/Horizontal Menu */}
-      <header className="md:hidden bg-dark-sidebar border-b border-dark-border px-6 py-4 flex items-center justify-between sticky top-0 z-40">
-        <div className="flex items-center gap-3">
-          <TrendingUp className="h-6 w-6 text-accent-blue" />
-          <span className="text-lg font-bold text-white">CrediDash</span>
+      {/* --- HEADER MOBILE --- */}
+      <header className="md:hidden bg-dark-sidebar border-b border-dark-border px-5 py-3.5 flex items-center justify-between sticky top-0 z-40">
+        <div className="flex items-center gap-2">
+          <TrendingUp className="h-5 w-5 text-accent-blue animate-pulse" />
+          <span className="text-base font-bold text-white tracking-wide">CrediDash</span>
+          <span className="text-[9px] text-gray-500 font-mono self-end pb-0.5">Ref: {SYSTEM_REF_DATE}</span>
         </div>
-        <button 
-          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          className="p-1.5 hover:bg-gray-800 rounded-lg text-gray-400"
+        <button
+          onClick={() => supabase.auth.signOut()}
+          className="p-2 bg-red-950/20 border border-red-500/20 text-red-400 hover:bg-red-950/40 rounded-xl transition-all duration-300 flex items-center justify-center cursor-pointer"
+          title="Sair do Sistema"
         >
-          {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+          <LogOut className="h-3.5 w-3.5" />
         </button>
       </header>
 
-      {/* Mobile Navigation Drawer */}
-      {isMobileMenuOpen && (
-        <div className="md:hidden bg-dark-sidebar border-b border-dark-border p-4 flex flex-col gap-2 z-30 sticky top-[61px]">
-          <button
-            onClick={() => { setActiveTab('operacao'); setIsMobileMenuOpen(false); }}
-            className={`flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium ${
-              activeTab === 'operacao' ? 'bg-accent-blue/10 text-accent-blue' : 'text-gray-400'
-            }`}
-          >
-            <Briefcase className="h-4 w-4" />
-            <span>Operação Diária</span>
-          </button>
-          <button
-            onClick={() => { setActiveTab('contratos'); setIsMobileMenuOpen(false); }}
-            className={`flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium ${
-              activeTab === 'contratos' ? 'bg-accent-green/10 text-accent-green' : 'text-gray-400'
-            }`}
-          >
-            <Layers className="h-4 w-4" />
-            <span>Contratos Ativos</span>
-          </button>
-          <button
-            onClick={() => { setActiveTab('contribuintes'); setIsMobileMenuOpen(false); }}
-            className={`flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium ${
-              activeTab === 'contribuintes' ? 'bg-accent-purple/10 text-accent-purple' : 'text-gray-400'
-            }`}
-          >
-            <Users className="h-4 w-4" />
-            <span>Contribuintes</span>
-          </button>
-          <button
-            onClick={() => { setActiveTab('dashboard'); setIsMobileMenuOpen(false); }}
-            className={`flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium ${
-              activeTab === 'dashboard' ? 'bg-gray-800 text-white' : 'text-gray-400'
-            }`}
-          >
-            <History className="h-4 w-4" />
-            <span>Dashboard & Histórico</span>
-          </button>
-          <div className="border-t border-dark-border my-2 pt-2">
-            <button
-              onClick={() => { supabase.auth.signOut(); setIsMobileMenuOpen(false); }}
-              className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-all w-full text-left cursor-pointer"
-            >
-              <LogOut className="h-4 w-4" />
-              <span>Sair do Sistema</span>
-            </button>
-          </div>
-        </div>
-      )}
+      {/* --- BOTTOM NAVIGATION (MOBILE ONLY) --- */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-dark-sidebar/95 border-t border-dark-border py-2 px-3 flex justify-around items-center z-50 shadow-[0_-4px_24px_rgba(0,0,0,0.4)] backdrop-blur-md">
+        <button
+          onClick={() => setActiveTab('operacao')}
+          className={`flex flex-col items-center gap-1 py-1 px-3 rounded-xl transition-all cursor-pointer bg-transparent border-none ${
+            activeTab === 'operacao' ? 'text-accent-blue font-semibold scale-105' : 'text-gray-400'
+          }`}
+        >
+          <Briefcase className="h-5 w-5" />
+          <span className="text-[10px]">Operações</span>
+        </button>
+        <button
+          onClick={() => setActiveTab('contratos')}
+          className={`flex flex-col items-center gap-1 py-1 px-3 rounded-xl transition-all cursor-pointer bg-transparent border-none ${
+            activeTab === 'contratos' ? 'text-accent-green font-semibold scale-105' : 'text-gray-400'
+          }`}
+        >
+          <Layers className="h-5 w-5" />
+          <span className="text-[10px]">Contratos</span>
+        </button>
+        <button
+          onClick={() => setActiveTab('contribuintes')}
+          className={`flex flex-col items-center gap-1 py-1 px-3 rounded-xl transition-all cursor-pointer bg-transparent border-none ${
+            activeTab === 'contribuintes' ? 'text-accent-purple font-semibold scale-105' : 'text-gray-400'
+          }`}
+        >
+          <Users className="h-5 w-5" />
+          <span className="text-[10px]">Investidores</span>
+        </button>
+        <button
+          onClick={() => setActiveTab('dashboard')}
+          className={`flex flex-col items-center gap-1 py-1 px-3 rounded-xl transition-all cursor-pointer bg-transparent border-none ${
+            activeTab === 'dashboard' ? 'text-white font-semibold scale-105' : 'text-gray-400'
+          }`}
+        >
+          <History className="h-5 w-5" />
+          <span className="text-[10px]">Dashboard</span>
+        </button>
+      </nav>
 
       {/* --- MAIN CONTENT AREA --- */}
       <main className="flex-1 p-6 md:p-8 overflow-y-auto max-w-7xl mx-auto w-full">
@@ -830,74 +821,77 @@ function App() {
 
         {/* --- TAB 1: OPERAÇÃO --- */}
         {activeTab === 'operacao' && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="space-y-6 animate-fadeIn">
             
-            {/* Coluna 1: Novo Empréstimo & Atrasados */}
-            <div className="space-y-6">
-              {/* Form Novo Empréstimo */}
-              <div className="bg-dark-card border border-dark-border rounded-2xl p-6 shadow-sm">
-                <div className="flex items-center gap-2 mb-4">
+            {/* Quick Actions Card Grid */}
+            <div className="bg-dark-card border border-dark-border rounded-2xl p-6 shadow-sm">
+              <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4 flex items-center gap-2">
+                <Briefcase className="h-4 w-4 text-accent-blue" />
+                <span>Painel de Ações Rápidas</span>
+              </h3>
+              
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                {/* 1. Novo Empréstimo */}
+                <button
+                  onClick={() => setActiveActionModal('new-loan')}
+                  className="flex flex-col items-center justify-center p-4 bg-accent-blue/10 hover:bg-accent-blue/20 border border-accent-blue/20 rounded-2xl text-center transition-all duration-300 gap-2 cursor-pointer h-24"
+                >
                   <Plus className="h-5 w-5 text-accent-blue" />
-                  <h3 className="text-lg font-bold text-white">Novo Empréstimo</h3>
-                </div>
-                <form onSubmit={handleCreateLoan} className="space-y-4">
-                  <div>
-                    <label className="block text-xs font-semibold text-gray-400 mb-1.5 uppercase">Nome do Cliente</label>
-                    <input 
-                      type="text" 
-                      placeholder="Ex: Yuki Tanaka"
-                      value={newLoanClient}
-                      onChange={(e) => setNewLoanClient(e.target.value)}
-                      className="w-full bg-dark-bg border border-dark-border rounded-xl px-4 py-2.5 text-sm text-gray-100 focus:outline-none focus:border-accent-blue/50 font-medium"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-semibold text-gray-400 mb-1.5 uppercase">Valor Solicitado (¥)</label>
-                    <div className="relative">
-                      <span className="absolute left-4 top-2.5 text-gray-500 font-mono text-sm">¥</span>
-                      <input 
-                        type="number" 
-                        placeholder="Ex: 500000"
-                        value={newLoanValue}
-                        onChange={(e) => setNewLoanValue(e.target.value)}
-                        className="w-full bg-dark-bg border border-dark-border rounded-xl pl-8 pr-4 py-2.5 text-sm text-gray-100 focus:outline-none focus:border-accent-blue/50 font-mono"
-                      />
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-xs font-semibold text-gray-400 mb-1.5 uppercase">Juros a.m. (%)</label>
-                      <input 
-                        type="number" 
-                        step="0.1"
-                        placeholder="Ex: 5"
-                        value={newLoanInterest}
-                        onChange={(e) => setNewLoanInterest(e.target.value)}
-                        className="w-full bg-dark-bg border border-dark-border rounded-xl px-4 py-2.5 text-sm text-gray-100 focus:outline-none focus:border-accent-blue/50 font-mono"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-semibold text-gray-400 mb-1.5 uppercase">Vencimento</label>
-                      <input 
-                        type="date"
-                        value={newLoanDueDate}
-                        onChange={(e) => setNewLoanDueDate(e.target.value)}
-                        className="w-full bg-dark-bg border border-dark-border rounded-xl px-4 py-2.5 text-sm text-gray-100 focus:outline-none focus:border-accent-blue/50 font-mono"
-                      />
-                    </div>
-                  </div>
-                  <button 
-                    type="submit"
-                    className="w-full bg-accent-blue hover:bg-accent-blue/90 text-white font-semibold py-2.5 rounded-xl text-sm transition-all shadow-md shadow-accent-blue/10 flex items-center justify-center gap-2 cursor-pointer"
-                  >
-                    <Plus className="h-4 w-4" />
-                    <span>Conceder Empréstimo</span>
-                  </button>
-                </form>
-              </div>
+                  <span className="text-xs font-bold text-gray-200">Novo Empréstimo</span>
+                </button>
 
+                {/* 2. Registrar Pagamento */}
+                <button
+                  onClick={() => setActiveActionModal('pay-loan')}
+                  className="flex flex-col items-center justify-center p-4 bg-accent-green/10 hover:bg-accent-green/20 border border-accent-green/20 rounded-2xl text-center transition-all duration-300 gap-2 cursor-pointer h-24"
+                >
+                  <CheckCircle className="h-5 w-5 text-accent-green" />
+                  <span className="text-xs font-bold text-gray-200">Registrar Pagamento</span>
+                </button>
+
+                {/* 3. Movimentar Caixa */}
+                <button
+                  onClick={() => setActiveActionModal('move-cash')}
+                  className="flex flex-col items-center justify-center p-4 bg-blue-400/10 hover:bg-blue-400/20 border border-blue-400/20 rounded-2xl text-center transition-all duration-300 gap-2 cursor-pointer h-24"
+                >
+                  <DollarSign className="h-5 w-5 text-blue-400" />
+                  <span className="text-xs font-bold text-gray-200">Movimentar Caixa</span>
+                </button>
+
+                {/* 4. Ajustar Juros */}
+                <button
+                  onClick={() => setActiveActionModal('update-rate')}
+                  className="flex flex-col items-center justify-center p-4 bg-accent-purple/10 hover:bg-accent-purple/20 border border-accent-purple/20 rounded-2xl text-center transition-all duration-300 gap-2 cursor-pointer h-24"
+                >
+                  <Percent className="h-5 w-5 text-accent-purple" />
+                  <span className="text-xs font-bold text-gray-200">Ajustar Juros</span>
+                </button>
+
+                {/* 5. Novo Investidor */}
+                <button
+                  onClick={() => setActiveActionModal('add-investor')}
+                  className="flex flex-col items-center justify-center p-4 bg-pink-500/10 hover:bg-pink-500/20 border border-pink-500/20 rounded-2xl text-center transition-all duration-300 gap-2 cursor-pointer h-24"
+                >
+                  <UserPlus className="h-5 w-5 text-pink-400" />
+                  <span className="text-xs font-bold text-gray-200">Novo Investidor</span>
+                </button>
+
+                {/* 6. Pagar Investidor */}
+                <button
+                  onClick={() => setActiveActionModal('pay-investor')}
+                  className="flex flex-col items-center justify-center p-4 bg-orange-500/10 hover:bg-orange-500/20 border border-orange-500/20 rounded-2xl text-center transition-all duration-300 gap-2 cursor-pointer h-24"
+                >
+                  <UserCheck className="h-5 w-5 text-orange-400" />
+                  <span className="text-xs font-bold text-gray-200">Pagar Investidor</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Listas Informativas: Contratos Atrasados & Agenda de Vencimentos */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              
               {/* Card Atrasados */}
-              <div className="bg-dark-card border border-dark-border rounded-2xl p-6">
+              <div className="bg-dark-card border border-dark-border rounded-2xl p-6 shadow-sm">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2">
                     <AlertTriangle className="h-5 w-5 text-accent-red" />
@@ -909,14 +903,14 @@ function App() {
                 </div>
 
                 {overdueLoans.length === 0 ? (
-                  <div className="text-center py-6 text-gray-500 border border-dashed border-dark-border rounded-xl">
+                  <div className="text-center py-8 text-gray-500 border border-dashed border-dark-border rounded-xl">
                     <CheckCircle className="h-8 w-8 text-accent-green mx-auto mb-2 opacity-55" />
                     <p className="text-sm font-medium">Nenhum contrato em atraso!</p>
                   </div>
                 ) : (
-                  <div className="space-y-3 max-h-[220px] overflow-y-auto pr-1">
+                  <div className="space-y-3 max-h-[300px] overflow-y-auto pr-1">
                     {overdueLoans.map(loan => (
-                      <div key={loan.id} className="flex justify-between items-center p-3 rounded-xl bg-dark-bg border border-dark-border hover:border-accent-red/30 transition-all">
+                      <div key={loan.id} className="flex justify-between items-center p-3.5 rounded-xl bg-dark-bg border border-dark-border hover:border-accent-red/30 transition-all">
                         <div>
                           <span className="text-sm font-bold text-gray-200 block">{loan.client}</span>
                           <span className="text-xs text-gray-500 font-mono">Venceu em: {loan.dueDate}</span>
@@ -930,206 +924,34 @@ function App() {
                   </div>
                 )}
               </div>
-            </div>
-
-            {/* Coluna 2: Registrar Pagamento & Alterar Taxa */}
-            <div className="space-y-6">
-              {/* Registrar Pagamento */}
-              <div className="bg-dark-card border border-dark-border rounded-2xl p-6">
-                <div className="flex items-center gap-2 mb-4">
-                  <CheckCircle className="h-5 w-5 text-accent-green" />
-                  <h3 className="text-lg font-bold text-white">Registrar Pagamento</h3>
-                </div>
-                <form onSubmit={handleRegisterPayment} className="space-y-4">
-                  <div>
-                    <label className="block text-xs font-semibold text-gray-400 mb-1.5 uppercase">Contrato Ativo</label>
-                    <select 
-                      value={payLoanId}
-                      onChange={(e) => setPayLoanId(e.target.value)}
-                      className="w-full bg-dark-bg border border-dark-border rounded-xl px-4 py-2.5 text-sm text-gray-100 focus:outline-none focus:border-accent-green/50 font-medium"
-                    >
-                      <option value="">Selecione o Cliente</option>
-                      {loans.filter(l => l.isActive).map(loan => (
-                        <option key={loan.id} value={loan.id}>
-                          {loan.client} - Saldo: {formatYen(loan.balance)} ({loan.interest}%)
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-xs font-semibold text-gray-400 mb-1.5 uppercase">Valor Recebido (¥)</label>
-                    <div className="relative">
-                      <span className="absolute left-4 top-2.5 text-gray-500 font-mono text-sm">¥</span>
-                      <input 
-                        type="number" 
-                        placeholder="Ex: 100000"
-                        value={payValue}
-                        onChange={(e) => setPayValue(e.target.value)}
-                        className="w-full bg-dark-bg border border-dark-border rounded-xl pl-8 pr-4 py-2.5 text-sm text-gray-100 focus:outline-none focus:border-accent-green/50 font-mono"
-                      />
-                    </div>
-                  </div>
-
-                  {/* PREVIEW EM TEMPO REAL */}
-                  {selectedLoanForPay && payValue && (
-                    <div className="border border-dashed border-accent-green/40 bg-accent-green/5 rounded-xl p-4 space-y-2">
-                      <div className="flex items-center gap-1.5 text-accent-green text-xs font-bold uppercase tracking-wider mb-1">
-                        <Info className="h-3.5 w-3.5" />
-                        <span>Simulação de Saldo</span>
-                      </div>
-                      <div className="flex justify-between text-xs">
-                        <span className="text-gray-400">Saldo Restante:</span>
-                        <span className="font-bold font-mono text-white">{formatYen(previewRemaining)}</span>
-                      </div>
-                      <div className="flex justify-between text-xs">
-                        <span className="text-gray-400">Próxima Parcela (com +{selectedLoanForPay.interest}% juros):</span>
-                        <span className="font-bold font-mono text-accent-green">{formatYen(previewNextInstallment)}</span>
-                      </div>
-                      {previewRemaining <= 0 && (
-                        <div className="mt-2 text-[11px] font-semibold text-accent-green bg-accent-green/10 py-1 px-2.5 rounded-lg border border-accent-green/20 text-center">
-                          🎉 Este pagamento quita integralmente a dívida.
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  <button 
-                    type="submit"
-                    className="w-full bg-accent-green hover:bg-accent-green/90 text-white font-semibold py-2.5 rounded-xl text-sm transition-all shadow-md shadow-accent-green/10 flex items-center justify-center gap-2 cursor-pointer"
-                  >
-                    <CheckCircle className="h-4 w-4" />
-                    <span>Confirmar Recebimento</span>
-                  </button>
-                </form>
-              </div>
-
-              {/* Form Alterar Juros / Penalidades */}
-              <div className="bg-dark-card border border-dark-border rounded-2xl p-6">
-                <div className="flex items-center gap-2 mb-4">
-                  <Percent className="h-5 w-5 text-accent-purple" />
-                  <h3 className="text-lg font-bold text-white">Alterar Juros / Penalidade</h3>
-                </div>
-                <form onSubmit={handleUpdateInterest} className="space-y-4">
-                  <div>
-                    <label className="block text-xs font-semibold text-gray-400 mb-1.5 uppercase">Cliente Alvo</label>
-                    <select 
-                      value={rateLoanId}
-                      onChange={(e) => setRateLoanId(e.target.value)}
-                      className="w-full bg-dark-bg border border-dark-border rounded-xl px-4 py-2.5 text-sm text-gray-100 focus:outline-none focus:border-accent-purple/50 font-medium"
-                    >
-                      <option value="">Selecione o Cliente</option>
-                      {loans.filter(l => l.isActive).map(loan => (
-                        <option key={loan.id} value={loan.id}>
-                          {loan.client} (Taxa atual: {loan.interest}%)
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-xs font-semibold text-gray-400 mb-1.5 uppercase">Nova Taxa Mensal (%)</label>
-                    <input 
-                      type="number" 
-                      step="0.1"
-                      placeholder="Ex: 7.5"
-                      value={rateNewValue}
-                      onChange={(e) => setRateNewValue(e.target.value)}
-                      className="w-full bg-dark-bg border border-dark-border rounded-xl px-4 py-2.5 text-sm text-gray-100 focus:outline-none focus:border-accent-purple/50 font-mono"
-                    />
-                  </div>
-                  <button 
-                    type="submit"
-                    className="w-full bg-accent-purple hover:bg-accent-purple/90 text-white font-semibold py-2.5 rounded-xl text-sm transition-all shadow-md shadow-accent-purple/10 flex items-center justify-center gap-2 cursor-pointer"
-                  >
-                    <Percent className="h-4 w-4" />
-                    <span>Aplicar Nova Taxa</span>
-                  </button>
-                </form>
-              </div>
-
-            </div>
-
-            {/* Coluna 3: Pagar Parcela ao Acionista & Agenda de Vencimentos */}
-            <div className="space-y-6">
-              {/* Pagar Parcela ao Acionista */}
-              <div className="bg-dark-card border border-dark-border rounded-2xl p-6">
-                <div className="flex items-center gap-2 mb-4">
-                  <UserCheck className="h-5 w-5 text-accent-purple" />
-                  <h3 className="text-lg font-bold text-white">Pagar Parcela a Investidor</h3>
-                </div>
-                <form onSubmit={handlePayInvestor} className="space-y-4">
-                  <div>
-                    <label className="block text-xs font-semibold text-gray-400 mb-1.5 uppercase">Acionista Credor</label>
-                    <select 
-                      value={payInvestorId}
-                      onChange={(e) => setPayInvestorId(e.target.value)}
-                      className="w-full bg-dark-bg border border-dark-border rounded-xl px-4 py-2.5 text-sm text-gray-100 focus:outline-none focus:border-accent-purple/50 font-medium"
-                    >
-                      <option value="">Selecione o Investidor</option>
-                      {investors.filter(i => i.parcelasPagas < i.qtdParcelas).map(investor => (
-                        <option key={investor.id} value={investor.id}>
-                          {investor.name} - Parcela: {formatYen(investor.valorParcela)} ({investor.parcelasPagas}/{investor.qtdParcelas})
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  
-                  {payInvestorId && (
-                    <div className="bg-gray-800/40 border border-dark-border rounded-xl p-4 text-xs space-y-2">
-                      {(() => {
-                        const inv = investors.find(i => i.id === parseInt(payInvestorId));
-                        if (!inv) return null;
-                        const total = inv.qtdParcelas * inv.valorParcela;
-                        const pago = inv.parcelasPagas * inv.valorParcela;
-                        return (
-                          <>
-                            <div className="flex justify-between"><span className="text-gray-400">Capital Solicitado:</span> <span className="font-semibold text-white">{formatYen(inv.value)}</span></div>
-                            <div className="flex justify-between"><span className="text-gray-400">Total a Pagar Pactuado:</span> <span className="font-semibold text-white">{formatYen(total)}</span></div>
-                            <div className="flex justify-between"><span className="text-gray-400">Total Pago até hoje:</span> <span className="font-semibold text-accent-green">{formatYen(pago)}</span></div>
-                            <div className="flex justify-between"><span className="text-gray-400">Próximo Débito:</span> <span className="font-bold text-accent-purple font-mono">{formatYen(inv.valorParcela)}</span></div>
-                          </>
-                        );
-                      })()}
-                    </div>
-                  )}
-
-                  <button 
-                    type="submit"
-                    className="w-full bg-accent-purple hover:bg-accent-purple/90 text-white font-semibold py-2.5 rounded-xl text-sm transition-all shadow-md shadow-accent-purple/10 flex items-center justify-center gap-2 cursor-pointer"
-                  >
-                    <UserCheck className="h-4 w-4" />
-                    <span>Baixar 1 Parcela</span>
-                  </button>
-                </form>
-              </div>
 
               {/* Agenda de Vencimentos */}
-              <div className="bg-dark-card border border-dark-border rounded-2xl p-6">
+              <div className="bg-dark-card border border-dark-border rounded-2xl p-6 shadow-sm">
                 <div className="flex items-center gap-2 mb-4">
                   <Calendar className="h-5 w-5 text-accent-blue" />
                   <h3 className="text-lg font-bold text-white">Agenda de Vencimentos</h3>
                 </div>
                 
                 {upcomingLoans.length === 0 ? (
-                  <div className="text-center py-6 text-gray-500 border border-dashed border-dark-border rounded-xl">
+                  <div className="text-center py-8 text-gray-500 border border-dashed border-dark-border rounded-xl">
                     <p className="text-sm">Nenhum vencimento futuro agendado.</p>
                   </div>
                 ) : (
-                  <div className="space-y-4">
+                  <div className="space-y-4 max-h-[300px] overflow-y-auto pr-1">
                     {upcomingLoans.map(loan => {
                       const [, mm, dd] = loan.dueDate.split('-');
                       const mesAbreviado = getMonthName(mm);
                       return (
-                        <div key={loan.id} className="flex items-center gap-4">
-                          {/* Bloco de Data Estilizado em Azul/Roxo */}
-                          <div className="flex flex-col items-center justify-center h-12 w-12 rounded-xl bg-gradient-to-br from-accent-blue to-accent-purple text-white font-bold flex-shrink-0 shadow-md">
-                            <span className="text-[10px] leading-tight opacity-90">{mesAbreviado}</span>
-                            <span className="text-lg leading-tight font-mono">{dd}</span>
+                        <div key={loan.id} className="flex items-center gap-4 p-1">
+                          <div className="flex flex-col items-center justify-center h-11 w-11 rounded-xl bg-gradient-to-br from-accent-blue to-accent-purple text-white font-bold flex-shrink-0 shadow-md">
+                            <span className="text-[9px] leading-tight opacity-90">{mesAbreviado}</span>
+                            <span className="text-base leading-tight font-mono">{dd}</span>
                           </div>
                           <div className="flex-1 min-w-0">
                             <span className="text-sm font-bold text-white block truncate">{loan.client}</span>
                             <span className="text-xs text-gray-400 block font-mono">Saldo: {formatYen(loan.balance)}</span>
                           </div>
-                          <span className="px-2 py-0.5 text-[10px] font-bold rounded-lg bg-accent-green/10 text-accent-green border border-accent-green/20">
+                          <span className="px-2 py-0.5 text-[9px] font-bold rounded-lg bg-accent-green/10 text-accent-green border border-accent-green/20">
                             Em dia
                           </span>
                         </div>
@@ -1138,8 +960,8 @@ function App() {
                   </div>
                 )}
               </div>
-            </div>
 
+            </div>
           </div>
         )}
 
@@ -1163,8 +985,8 @@ function App() {
               </div>
             </div>
 
-            {/* Table */}
-            <div className="overflow-x-auto">
+            {/* Table (Desktop Only) */}
+            <div className="hidden md:block overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="border-b border-dark-border text-gray-400 text-xs font-semibold uppercase tracking-wider">
@@ -1230,6 +1052,71 @@ function App() {
               </table>
             </div>
 
+            {/* Mobile Card List (Mobile Only) */}
+            <div className="block md:hidden space-y-4">
+              {loans
+                .filter(loan => {
+                  const matchesSearch = loan.client.toLowerCase().includes(searchContractQuery.toLowerCase());
+                  return loan.isActive && matchesSearch;
+                })
+                .map(loan => {
+                  const delayed = isDelayed(loan.dueDate, loan.isActive);
+                  const accruedInterest = loan.balance - loan.valueOriginal;
+
+                  return (
+                    <div key={loan.id} className="bg-dark-bg border border-dark-border rounded-xl p-4 space-y-3 shadow-sm hover:border-gray-700 transition-all">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <span className="text-base font-bold text-white block">{loan.client}</span>
+                          <span className="text-[10px] text-gray-500 font-mono">Taxa: {loan.interest}% a.m.</span>
+                        </div>
+                        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${
+                          delayed 
+                            ? 'bg-accent-red/10 border-accent-red/20 text-accent-red' 
+                            : 'bg-accent-green/10 border-accent-green/20 text-accent-green'
+                        }`}>
+                          {delayed ? 'Atrasado' : 'Em dia'}
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2 text-xs border-t border-dark-border/40 pt-3">
+                        <div>
+                          <span className="text-gray-500 block uppercase tracking-wider font-semibold text-[9px]">Capital</span>
+                          <span className="font-mono text-gray-300">{formatYen(loan.valueOriginal)}</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-500 block uppercase tracking-wider font-semibold text-[9px]">Saldo Atual</span>
+                          <span className="font-mono text-accent-green font-bold">{formatYen(loan.balance)}</span>
+                        </div>
+                        <div className="mt-1">
+                          <span className="text-gray-500 block uppercase tracking-wider font-semibold text-[9px]">Juros Acumulados</span>
+                          <span className="font-mono text-accent-purple font-semibold">{formatYen(accruedInterest)}</span>
+                        </div>
+                        <div className="mt-1">
+                          <span className="text-gray-500 block uppercase tracking-wider font-semibold text-[9px]">Vencimento</span>
+                          <span className="font-mono text-gray-300">{loan.dueDate}</span>
+                        </div>
+                      </div>
+
+                      <div className="flex justify-end pt-2 border-t border-dark-border/20">
+                        <button
+                          onClick={() => setEditingLoan({ ...loan })}
+                          className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg text-xs font-semibold transition-colors border border-dark-border cursor-pointer w-full justify-center"
+                        >
+                          <Edit3 className="h-3.5 w-3.5" />
+                          <span>Editar Contrato</span>
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              {loans.filter(l => l.isActive && l.client.toLowerCase().includes(searchContractQuery.toLowerCase())).length === 0 && (
+                <div className="text-center py-10 text-gray-500 font-medium bg-dark-bg border border-dashed border-dark-border rounded-xl">
+                  Nenhum contrato ativo corresponde à pesquisa.
+                </div>
+              )}
+            </div>
+
           </div>
         )}
 
@@ -1287,100 +1174,12 @@ function App() {
               </div>
             </div>
 
-            {/* Layout Dividido Form + Tabela */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            {/* Tabela/Cards Detalhados */}
+            <div className="bg-dark-card border border-dark-border rounded-2xl p-6 shadow-sm">
+              <h3 className="text-lg font-bold text-white mb-4">Investidores e Sobra Líquida</h3>
               
-              {/* Form Novo Financiamento */}
-              <div className="lg:col-span-4 bg-dark-card border border-dark-border rounded-2xl p-6 shadow-sm">
-                <div className="flex items-center gap-2 mb-4">
-                  <UserPlus className="h-5 w-5 text-accent-purple" />
-                  <h3 className="text-lg font-bold text-white">Novo Financiamento</h3>
-                </div>
-                <form onSubmit={handleAddInvestor} className="space-y-4">
-                  <div>
-                    <label className="block text-xs font-semibold text-gray-400 mb-1.5 uppercase">Nome do Acionista</label>
-                    <input 
-                      type="text" 
-                      placeholder="Ex: Ichiro Suzuki"
-                      value={newInvName}
-                      onChange={(e) => setNewInvName(e.target.value)}
-                      className="w-full bg-dark-bg border border-dark-border rounded-xl px-4 py-2.5 text-sm text-gray-100 focus:outline-none focus:border-accent-purple/50 font-medium"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-semibold text-gray-400 mb-1.5 uppercase">Valor Solicitado (¥)</label>
-                    <div className="relative">
-                      <span className="absolute left-4 top-2.5 text-gray-500 font-mono text-sm">¥</span>
-                      <input 
-                        type="number" 
-                        placeholder="Ex: 1000000"
-                        value={newInvValue}
-                        onChange={(e) => setNewInvValue(e.target.value)}
-                        className="w-full bg-dark-bg border border-dark-border rounded-xl pl-8 pr-4 py-2.5 text-sm text-gray-100 focus:outline-none focus:border-accent-purple/50 font-mono"
-                      />
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-xs font-semibold text-gray-400 mb-1.5 uppercase">Nº Parcelas</label>
-                      <input 
-                        type="number" 
-                        placeholder="Ex: 10"
-                        value={newInvParcelas}
-                        onChange={(e) => setNewInvParcelas(e.target.value)}
-                        className="w-full bg-dark-bg border border-dark-border rounded-xl px-4 py-2.5 text-sm text-gray-100 focus:outline-none focus:border-accent-purple/50 font-mono"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-semibold text-gray-400 mb-1.5 uppercase">Valor Parcela (¥)</label>
-                      <input 
-                        type="number" 
-                        placeholder="Ex: 110000"
-                        value={newInvValorParcela}
-                        onChange={(e) => setNewInvValorParcela(e.target.value)}
-                        className="w-full bg-dark-bg border border-dark-border rounded-xl px-4 py-2.5 text-sm text-gray-100 focus:outline-none focus:border-accent-purple/50 font-mono"
-                      />
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <div className="flex items-center justify-between mb-1.5">
-                      <label className="block text-xs font-semibold text-gray-400 uppercase">Data de Aporte</label>
-                      <div className="flex items-center gap-1.5">
-                        <input 
-                          type="checkbox" 
-                          id="noDate"
-                          checked={newInvNoDate}
-                          onChange={(e) => setNewInvNoDate(e.target.checked)}
-                          className="h-3.5 w-3.5 accent-accent-purple rounded bg-dark-bg border-dark-border cursor-pointer"
-                        />
-                        <label htmlFor="noDate" className="text-xs text-gray-400 font-medium cursor-pointer">Sem data fixada</label>
-                      </div>
-                    </div>
-                    <input 
-                      type="date"
-                      disabled={newInvNoDate}
-                      value={newInvDate}
-                      onChange={(e) => setNewInvDate(e.target.value)}
-                      className={`w-full bg-dark-bg border border-dark-border rounded-xl px-4 py-2.5 text-sm text-gray-100 focus:outline-none focus:border-accent-purple/50 font-mono ${
-                        newInvNoDate ? 'opacity-40 cursor-not-allowed' : ''
-                      }`}
-                    />
-                  </div>
-
-                  <button 
-                    type="submit"
-                    className="w-full bg-accent-purple hover:bg-accent-purple/90 text-white font-semibold py-2.5 rounded-xl text-sm transition-all shadow-md shadow-accent-purple/10 flex items-center justify-center gap-2 cursor-pointer"
-                  >
-                    <Plus className="h-4 w-4" />
-                    <span>Registrar Financiamento</span>
-                  </button>
-                </form>
-              </div>
-
-              {/* Tabela Detalhada */}
-              <div className="lg:col-span-8 bg-dark-card border border-dark-border rounded-2xl p-6 shadow-sm overflow-x-auto">
-                <h3 className="text-lg font-bold text-white mb-4">Investidores e Sobra Líquida</h3>
+              {/* Desktop Table (Desktop Only) */}
+              <div className="hidden md:block overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                   <thead>
                     <tr className="border-b border-dark-border text-gray-400 text-xs font-semibold uppercase tracking-wider">
@@ -1423,8 +1222,69 @@ function App() {
                         </tr>
                       );
                     })}
+                    {investors.length === 0 && (
+                      <tr>
+                        <td colSpan="8" className="text-center py-10 text-gray-500 font-medium">Nenhum investidor registrado.</td>
+                      </tr>
+                    )}
                   </tbody>
                 </table>
+              </div>
+
+              {/* Mobile Card List (Mobile Only) */}
+              <div className="block md:hidden space-y-4">
+                {investors.map(inv => {
+                  const totalAPagar = inv.qtdParcelas * inv.valorParcela;
+                  const aindaDevo = totalAPagar - (inv.parcelasPagas * inv.valorParcela);
+                  const lucroVermelho = totalAPagar - inv.value;
+                  const lucroVerde = (inv.value * 0.20) - lucroVermelho;
+
+                  return (
+                    <div key={inv.id} className="bg-dark-bg border border-dark-border rounded-xl p-4 space-y-3 shadow-sm">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <span className="text-base font-bold text-white block">{inv.name}</span>
+                          <span className="text-[10px] text-gray-500 font-mono">Acordo em: {inv.date || 'Sem data'}</span>
+                        </div>
+                        <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-gray-800 text-gray-300 font-mono">
+                          {inv.parcelasPagas} / {inv.qtdParcelas}
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2 text-xs border-t border-dark-border/40 pt-3">
+                        <div>
+                          <span className="text-gray-500 block uppercase tracking-wider font-semibold text-[9px]">Solicitado</span>
+                          <span className="font-mono text-gray-300">{formatYen(inv.value)}</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-500 block uppercase tracking-wider font-semibold text-[9px]">Valor Parcela</span>
+                          <span className="font-mono text-gray-300">{formatYen(inv.valorParcela)}</span>
+                        </div>
+                        <div className="mt-1">
+                          <span className="text-gray-500 block uppercase tracking-wider font-semibold text-[9px]">Total Pactuado</span>
+                          <span className="font-mono text-gray-300">{formatYen(totalAPagar)}</span>
+                        </div>
+                        <div className="mt-1">
+                          <span className="text-gray-500 block uppercase tracking-wider font-semibold text-[9px]">Ainda Devo</span>
+                          <span className="font-mono text-gray-300 font-bold">{formatYen(aindaDevo)}</span>
+                        </div>
+                        <div className="mt-1">
+                          <span className="text-gray-500 block uppercase tracking-wider font-semibold text-[9px]">Custo Juros</span>
+                          <span className="font-mono text-accent-red font-bold">{formatYen(lucroVermelho)}</span>
+                        </div>
+                        <div className="mt-1">
+                          <span className="text-gray-500 block uppercase tracking-wider font-semibold text-[9px]">Sobra Verde</span>
+                          <span className="font-mono text-accent-green font-extrabold">{formatYen(lucroVerde)}</span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+                {investors.length === 0 && (
+                  <div className="text-center py-10 text-gray-500 font-medium bg-dark-bg border border-dashed border-dark-border rounded-xl">
+                    Nenhum investidor registrado.
+                  </div>
+                )}
               </div>
 
             </div>
@@ -1470,47 +1330,6 @@ function App() {
                   <Percent className="h-6 w-6 text-accent-purple" />
                 </div>
               </div>
-            </div>
-
-            {/* Form Movimentar Caixa */}
-            <div className="bg-dark-card border border-dark-border rounded-2xl p-6 max-w-lg">
-              <div className="flex items-center gap-2 mb-4">
-                <History className="h-5 w-5 text-accent-blue" />
-                <h3 className="text-lg font-bold text-white">Movimentar Caixa Manual</h3>
-              </div>
-              <form onSubmit={handleMoveCash} className="flex flex-col sm:flex-row items-end gap-4">
-                <div className="flex-1 w-full">
-                  <label className="block text-xs font-semibold text-gray-400 mb-1.5 uppercase">Operação</label>
-                  <select
-                    value={moveType}
-                    onChange={(e) => setMoveType(e.target.value)}
-                    className="w-full bg-dark-bg border border-dark-border rounded-xl px-4 py-2 text-sm text-gray-100 focus:outline-none focus:border-accent-blue/50 font-medium"
-                  >
-                    <option value="aporte">Aporte (Entrada +)</option>
-                    <option value="retirada">Retirada (Saída -)</option>
-                  </select>
-                </div>
-                <div className="flex-1 w-full">
-                  <label className="block text-xs font-semibold text-gray-400 mb-1.5 uppercase">Valor da Transação (¥)</label>
-                  <div className="relative">
-                    <span className="absolute left-4 top-2 text-gray-500 font-mono text-sm">¥</span>
-                    <input 
-                      type="number"
-                      placeholder="Ex: 50000"
-                      value={moveValue}
-                      onChange={(e) => setMoveValue(e.target.value)}
-                      className="w-full bg-dark-bg border border-dark-border rounded-xl pl-8 pr-4 py-2 text-sm text-gray-100 focus:outline-none focus:border-accent-blue/50 font-mono"
-                    />
-                  </div>
-                </div>
-                <button
-                  type="submit"
-                  className="w-full sm:w-auto bg-accent-blue hover:bg-accent-blue/90 text-white font-semibold py-2 px-6 rounded-xl text-sm transition-all shadow-md shadow-accent-blue/10 flex items-center justify-center gap-2 cursor-pointer h-[38px]"
-                >
-                  <CheckCircle className="h-4 w-4" />
-                  <span>Registrar</span>
-                </button>
-              </form>
             </div>
 
             {/* Área de Histórico Filtrável */}
@@ -1634,6 +1453,387 @@ function App() {
         )}
 
       </main>
+
+      {/* --- QUICK ACTION MODAL / BOTTOM SHEET --- */}
+      {activeActionModal && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end md:items-center justify-center p-0 md:p-4 animate-fadeIn">
+          <div className="bg-dark-card border-t md:border border-dark-border rounded-t-3xl md:rounded-2xl w-full max-w-lg p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+            <button 
+              onClick={() => setActiveActionModal(null)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-white p-1 hover:bg-gray-800 rounded-lg cursor-pointer"
+            >
+              <X className="h-5 w-5" />
+            </button>
+            
+            {/* 1. Novo Empréstimo */}
+            {activeActionModal === 'new-loan' && (
+              <div>
+                <div className="flex items-center gap-2 mb-4">
+                  <Plus className="h-5 w-5 text-accent-blue" />
+                  <h3 className="text-lg font-bold text-white">Novo Empréstimo</h3>
+                </div>
+                <form onSubmit={async (e) => { await handleCreateLoan(e); setActiveActionModal(null); }} className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-400 mb-1.5 uppercase">Nome do Cliente</label>
+                    <input 
+                      type="text" 
+                      placeholder="Ex: Yuki Tanaka"
+                      value={newLoanClient}
+                      onChange={(e) => setNewLoanClient(e.target.value)}
+                      className="w-full bg-dark-bg border border-dark-border rounded-xl px-4 py-3 text-base text-gray-100 focus:outline-none focus:border-accent-blue/50 font-medium font-sans"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-400 mb-1.5 uppercase">Valor Solicitado (¥)</label>
+                    <div className="relative">
+                      <span className="absolute left-4 top-3 text-gray-500 font-mono text-base">¥</span>
+                      <input 
+                        type="number" 
+                        placeholder="Ex: 500000"
+                        value={newLoanValue}
+                        onChange={(e) => setNewLoanValue(e.target.value)}
+                        className="w-full bg-dark-bg border border-dark-border rounded-xl pl-8 pr-4 py-3 text-base text-gray-100 focus:outline-none focus:border-accent-blue/50 font-mono"
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-400 mb-1.5 uppercase">Juros a.m. (%)</label>
+                      <input 
+                        type="number" 
+                        step="0.1"
+                        placeholder="Ex: 5"
+                        value={newLoanInterest}
+                        onChange={(e) => setNewLoanInterest(e.target.value)}
+                        className="w-full bg-dark-bg border border-dark-border rounded-xl px-4 py-3 text-base text-gray-100 focus:outline-none focus:border-accent-blue/50 font-mono"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-400 mb-1.5 uppercase">Vencimento</label>
+                      <input 
+                        type="date"
+                        value={newLoanDueDate}
+                        onChange={(e) => setNewLoanDueDate(e.target.value)}
+                        className="w-full bg-dark-bg border border-dark-border rounded-xl px-4 py-3 text-base text-gray-100 focus:outline-none focus:border-accent-blue/50 font-mono"
+                      />
+                    </div>
+                  </div>
+                  <button 
+                    type="submit"
+                    className="w-full bg-accent-blue hover:bg-accent-blue/90 text-white font-semibold py-3 rounded-xl text-sm transition-all shadow-md shadow-accent-blue/10 flex items-center justify-center gap-2 cursor-pointer mt-2"
+                  >
+                    <Plus className="h-4 w-4" />
+                    <span>Conceder Empréstimo</span>
+                  </button>
+                </form>
+              </div>
+            )}
+
+            {/* 2. Registrar Pagamento */}
+            {activeActionModal === 'pay-loan' && (
+              <div>
+                <div className="flex items-center gap-2 mb-4">
+                  <CheckCircle className="h-5 w-5 text-accent-green" />
+                  <h3 className="text-lg font-bold text-white">Registrar Pagamento</h3>
+                </div>
+                <form onSubmit={async (e) => { await handleRegisterPayment(e); setActiveActionModal(null); }} className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-400 mb-1.5 uppercase">Contrato Ativo</label>
+                    <select 
+                      value={payLoanId}
+                      onChange={(e) => setPayLoanId(e.target.value)}
+                      className="w-full bg-dark-bg border border-dark-border rounded-xl px-4 py-3 text-base text-gray-100 focus:outline-none focus:border-accent-green/50 font-medium font-sans"
+                    >
+                      <option value="">Selecione o Cliente</option>
+                      {loans.filter(l => l.isActive).map(loan => (
+                        <option key={loan.id} value={loan.id}>
+                          {loan.client} - Saldo: {formatYen(loan.balance)} ({loan.interest}%)
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-400 mb-1.5 uppercase">Valor Recebido (¥)</label>
+                    <div className="relative">
+                      <span className="absolute left-4 top-3 text-gray-500 font-mono text-base">¥</span>
+                      <input 
+                        type="number" 
+                        placeholder="Ex: 100000"
+                        value={payValue}
+                        onChange={(e) => setPayValue(e.target.value)}
+                        className="w-full bg-dark-bg border border-dark-border rounded-xl pl-8 pr-4 py-3 text-base text-gray-100 focus:outline-none focus:border-accent-green/50 font-mono"
+                      />
+                    </div>
+                  </div>
+
+                  {selectedLoanForPay && payValue && (
+                    <div className="border border-dashed border-accent-green/40 bg-accent-green/5 rounded-xl p-4 space-y-2">
+                      <div className="flex items-center gap-1.5 text-accent-green text-xs font-bold uppercase tracking-wider mb-1">
+                        <Info className="h-3.5 w-3.5" />
+                        <span>Simulação de Saldo</span>
+                      </div>
+                      <div className="flex justify-between text-xs">
+                        <span className="text-gray-400">Saldo Restante:</span>
+                        <span className="font-bold font-mono text-white">{formatYen(previewRemaining)}</span>
+                      </div>
+                      <div className="flex justify-between text-xs">
+                        <span className="text-gray-400">Próxima Parcela (com +{selectedLoanForPay.interest}% juros):</span>
+                        <span className="font-bold font-mono text-accent-green">{formatYen(previewNextInstallment)}</span>
+                      </div>
+                      {previewRemaining <= 0 && (
+                        <div className="mt-2 text-[11px] font-semibold text-accent-green bg-accent-green/10 py-1 px-2.5 rounded-lg border border-accent-green/20 text-center">
+                          🎉 Este pagamento quita integralmente a dívida.
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  <button 
+                    type="submit"
+                    className="w-full bg-accent-green hover:bg-accent-green/90 text-white font-semibold py-3 rounded-xl text-sm transition-all shadow-md shadow-accent-green/10 flex items-center justify-center gap-2 cursor-pointer mt-2"
+                  >
+                    <CheckCircle className="h-4 w-4" />
+                    <span>Confirmar Recebimento</span>
+                  </button>
+                </form>
+              </div>
+            )}
+
+            {/* 3. Movimentar Caixa */}
+            {activeActionModal === 'move-cash' && (
+              <div>
+                <div className="flex items-center gap-2 mb-4">
+                  <DollarSign className="h-5 w-5 text-blue-400" />
+                  <h3 className="text-lg font-bold text-white">Movimentar Caixa</h3>
+                </div>
+                <form onSubmit={async (e) => { await handleMoveCash(e); setActiveActionModal(null); }} className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-400 mb-1.5 uppercase">Operação</label>
+                    <select
+                      value={moveType}
+                      onChange={(e) => setMoveType(e.target.value)}
+                      className="w-full bg-dark-bg border border-dark-border rounded-xl px-4 py-3 text-base text-gray-100 focus:outline-none focus:border-accent-blue/50 font-medium font-sans"
+                    >
+                      <option value="aporte">Aporte (Entrada +)</option>
+                      <option value="retirada">Retirada (Saída -)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-400 mb-1.5 uppercase">Valor da Transação (¥)</label>
+                    <div className="relative">
+                      <span className="absolute left-4 top-3 text-gray-500 font-mono text-base">¥</span>
+                      <input 
+                        type="number"
+                        placeholder="Ex: 50000"
+                        value={moveValue}
+                        onChange={(e) => setMoveValue(e.target.value)}
+                        className="w-full bg-dark-bg border border-dark-border rounded-xl pl-8 pr-4 py-3 text-base text-gray-100 focus:outline-none focus:border-accent-blue/50 font-mono"
+                      />
+                    </div>
+                  </div>
+                  <button
+                    type="submit"
+                    className="w-full bg-accent-blue hover:bg-accent-blue/90 text-white font-semibold py-3 rounded-xl text-sm transition-all shadow-md shadow-accent-blue/10 flex items-center justify-center gap-2 cursor-pointer mt-2"
+                  >
+                    <CheckCircle className="h-4 w-4" />
+                    <span>Registrar Lançamento</span>
+                  </button>
+                </form>
+              </div>
+            )}
+
+            {/* 4. Ajustar Juros */}
+            {activeActionModal === 'update-rate' && (
+              <div>
+                <div className="flex items-center gap-2 mb-4">
+                  <Percent className="h-5 w-5 text-accent-purple" />
+                  <h3 className="text-lg font-bold text-white">Alterar Juros / Penalidade</h3>
+                </div>
+                <form onSubmit={async (e) => { await handleUpdateInterest(e); setActiveActionModal(null); }} className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-400 mb-1.5 uppercase">Cliente Alvo</label>
+                    <select 
+                      value={rateLoanId}
+                      onChange={(e) => setRateLoanId(e.target.value)}
+                      className="w-full bg-dark-bg border border-dark-border rounded-xl px-4 py-3 text-base text-gray-100 focus:outline-none focus:border-accent-purple/50 font-medium font-sans"
+                    >
+                      <option value="">Selecione o Cliente</option>
+                      {loans.filter(l => l.isActive).map(loan => (
+                        <option key={loan.id} value={loan.id}>
+                          {loan.client} (Taxa atual: {loan.interest}%)
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-400 mb-1.5 uppercase">Nova Taxa Mensal (%)</label>
+                    <input 
+                      type="number" 
+                      step="0.1"
+                      placeholder="Ex: 7.5"
+                      value={rateNewValue}
+                      onChange={(e) => setRateNewValue(e.target.value)}
+                      className="w-full bg-dark-bg border border-dark-border rounded-xl px-4 py-3 text-base text-gray-100 focus:outline-none focus:border-accent-purple/50 font-mono"
+                    />
+                  </div>
+                  <button 
+                    type="submit"
+                    className="w-full bg-accent-purple hover:bg-accent-purple/90 text-white font-semibold py-3 rounded-xl text-sm transition-all shadow-md shadow-accent-purple/10 flex items-center justify-center gap-2 cursor-pointer mt-2"
+                  >
+                    <Percent className="h-4 w-4" />
+                    <span>Aplicar Nova Taxa</span>
+                  </button>
+                </form>
+              </div>
+            )}
+
+            {/* 5. Novo Investidor */}
+            {activeActionModal === 'add-investor' && (
+              <div>
+                <div className="flex items-center gap-2 mb-4">
+                  <UserPlus className="h-5 w-5 text-pink-400" />
+                  <h3 className="text-lg font-bold text-white">Registrar Investidor</h3>
+                </div>
+                <form onSubmit={async (e) => { await handleAddInvestor(e); setActiveActionModal(null); }} className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-400 mb-1.5 uppercase">Nome do Acionista</label>
+                    <input 
+                      type="text" 
+                      placeholder="Ex: Ichiro Suzuki"
+                      value={newInvName}
+                      onChange={(e) => setNewInvName(e.target.value)}
+                      className="w-full bg-dark-bg border border-dark-border rounded-xl px-4 py-3 text-base text-gray-100 focus:outline-none focus:border-accent-purple/50 font-medium font-sans"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-400 mb-1.5 uppercase">Valor Solicitado (¥)</label>
+                    <div className="relative">
+                      <span className="absolute left-4 top-3 text-gray-500 font-mono text-base">¥</span>
+                      <input 
+                        type="number" 
+                        placeholder="Ex: 1000000"
+                        value={newInvValue}
+                        onChange={(e) => setNewInvValue(e.target.value)}
+                        className="w-full bg-dark-bg border border-dark-border rounded-xl pl-8 pr-4 py-3 text-base text-gray-100 focus:outline-none focus:border-accent-purple/50 font-mono"
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-400 mb-1.5 uppercase">Nº Parcelas</label>
+                      <input 
+                        type="number" 
+                        placeholder="Ex: 10"
+                        value={newInvParcelas}
+                        onChange={(e) => setNewInvParcelas(e.target.value)}
+                        className="w-full bg-dark-bg border border-dark-border rounded-xl px-4 py-3 text-base text-gray-100 focus:outline-none focus:border-accent-purple/50 font-mono"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-400 mb-1.5 uppercase">Valor Parcela (¥)</label>
+                      <input 
+                        type="number" 
+                        placeholder="Ex: 110000"
+                        value={newInvValorParcela}
+                        onChange={(e) => setNewInvValorParcela(e.target.value)}
+                        className="w-full bg-dark-bg border border-dark-border rounded-xl px-4 py-3 text-base text-gray-100 focus:outline-none focus:border-accent-purple/50 font-mono"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="block text-xs font-semibold text-gray-400 uppercase">Data de Aporte</label>
+                      <div className="flex items-center gap-1.5">
+                        <input 
+                          type="checkbox" 
+                          id="noDateModal"
+                          checked={newInvNoDate}
+                          onChange={(e) => setNewInvNoDate(e.target.checked)}
+                          className="h-4 w-4 accent-accent-purple rounded bg-dark-bg border-dark-border cursor-pointer"
+                        />
+                        <label htmlFor="noDateModal" className="text-xs text-gray-400 font-medium cursor-pointer">Sem data fixada</label>
+                      </div>
+                    </div>
+                    <input 
+                      type="date"
+                      disabled={newInvNoDate}
+                      value={newInvDate}
+                      onChange={(e) => setNewInvDate(e.target.value)}
+                      className={`w-full bg-dark-bg border border-dark-border rounded-xl px-4 py-3 text-base text-gray-100 focus:outline-none focus:border-accent-purple/50 font-mono ${
+                        newInvNoDate ? 'opacity-40 cursor-not-allowed' : ''
+                      }`}
+                    />
+                  </div>
+
+                  <button 
+                    type="submit"
+                    className="w-full bg-accent-purple hover:bg-accent-purple/90 text-white font-semibold py-3 rounded-xl text-sm transition-all shadow-md shadow-accent-purple/10 flex items-center justify-center gap-2 cursor-pointer mt-2"
+                  >
+                    <Plus className="h-4 w-4" />
+                    <span>Registrar Financiamento</span>
+                  </button>
+                </form>
+              </div>
+            )}
+
+            {/* 6. Pagar Investidor */}
+            {activeActionModal === 'pay-investor' && (
+              <div>
+                <div className="flex items-center gap-2 mb-4">
+                  <UserCheck className="h-5 w-5 text-orange-400" />
+                  <h3 className="text-lg font-bold text-white">Pagar Parcela a Investidor</h3>
+                </div>
+                <form onSubmit={async (e) => { await handlePayInvestor(e); setActiveActionModal(null); }} className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-400 mb-1.5 uppercase">Acionista Credor</label>
+                    <select 
+                      value={payInvestorId}
+                      onChange={(e) => setPayInvestorId(e.target.value)}
+                      className="w-full bg-dark-bg border border-dark-border rounded-xl px-4 py-3 text-base text-gray-100 focus:outline-none focus:border-accent-purple/50 font-medium font-sans"
+                    >
+                      <option value="">Selecione o Investidor</option>
+                      {investors.filter(i => i.parcelasPagas < i.qtdParcelas).map(investor => (
+                        <option key={investor.id} value={investor.id}>
+                          {investor.name} - Parcela: {formatYen(investor.valorParcela)} ({investor.parcelasPagas}/{investor.qtdParcelas})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  
+                  {payInvestorId && (
+                    <div className="bg-gray-800/40 border border-dark-border rounded-xl p-4 text-xs space-y-2">
+                      {(() => {
+                        const inv = investors.find(i => i.id === parseInt(payInvestorId));
+                        if (!inv) return null;
+                        const total = inv.qtdParcelas * inv.valorParcela;
+                        const pago = inv.parcelasPagas * inv.valorParcela;
+                        return (
+                          <>
+                            <div className="flex justify-between"><span className="text-gray-400">Capital Solicitado:</span> <span className="font-semibold text-white">{formatYen(inv.value)}</span></div>
+                            <div className="flex justify-between"><span className="text-gray-400">Total a Pagar Pactuado:</span> <span className="font-semibold text-white">{formatYen(total)}</span></div>
+                            <div className="flex justify-between"><span className="text-gray-400">Total Pago até hoje:</span> <span className="font-semibold text-accent-green">{formatYen(pago)}</span></div>
+                            <div className="flex justify-between"><span className="text-gray-400">Próximo Débito:</span> <span className="font-bold text-accent-purple font-mono">{formatYen(inv.valorParcela)}</span></div>
+                          </>
+                        );
+                      })()}
+                    </div>
+                  )}
+
+                  <button 
+                    type="submit"
+                    className="w-full bg-accent-purple hover:bg-accent-purple/90 text-white font-semibold py-3 rounded-xl text-sm transition-all shadow-md shadow-accent-purple/10 flex items-center justify-center gap-2 cursor-pointer mt-2"
+                  >
+                    <UserCheck className="h-4 w-4" />
+                    <span>Baixar 1 Parcela</span>
+                  </button>
+                </form>
+              </div>
+            )}
+
+          </div>
+        </div>
+      )}
 
       {/* --- EDIT LOAN MODAL --- */}
       {editingLoan && (
